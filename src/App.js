@@ -4,7 +4,6 @@ import './styles/css/bootstrap.min.css';
 import "./styles/custom.css";
 import firebase from './firebase'
 
-
 import Navigation from './components/Navigation';
 
 class App extends Component {
@@ -14,11 +13,16 @@ class App extends Component {
       currentItem: '',
       username: '',
       items: [],
+      // randomName: "",
     }
     this.handleChange = this.handleChange.bind(this);
+    // this.getRandomName = this.getRandomName.bind(this);
+    
     this.handleSubmit = this.handleSubmit.bind(this); // <-- add this line
   }
 
+
+  
   handleSubmit(e) {
     e.preventDefault();
     const itemsRef = firebase.database().ref('items');
@@ -27,17 +31,22 @@ class App extends Component {
       user: this.state.username
     }
     itemsRef.push(item);
-    this.setState({
-      currentItem: '',
-      username: ''
-    });
+  
   }
   handleChange(e) {
     this.setState({
       [e.target.name]: e.target.value
     });
   }
-  componentDidMount() {
+  // getRandomName() {
+  //   console.log(this.state.items)
+  //   const { items } = this.state
+  //   var randomItem = items[Math.floor(Math.random()*items.length)];
+  //   this.setState({ randomNames: [...this.state.randomNames, randomItem] }) //add name to random list
+  //   return this.setState({randomName: randomItem})
+  //     }
+
+  componentDidMount() {    
     const itemsRef = firebase.database().ref('items');
     itemsRef.on('value', (snapshot) => {
       let items = snapshot.val();
@@ -54,30 +63,30 @@ class App extends Component {
       });
     });
   }
-  
+  removeItem(itemId) {
+    const itemRef = firebase.database().ref(`/items/${itemId}`);
+    itemRef.remove();
+  }
+
   render() {
 
     return (
       <div>
         <Navigation />
-       
+
         <div className="container">
-        <ul>
-        {this.state.items.map((item) => {
-          return (
-            <li key={item.id}>
-              <h3>{item.title}</h3>
-              <p>brought by: {item.user}</p>
-            </li>
-          )
-        })}
-      </ul>          <h1>Wine Lottery App</h1>
+
+          <h1>Wine Lottery App</h1>
+          <p> {this.state.randomName}</p>
+
           <form onSubmit={this.handleSubmit}>
-          <input type="text" name="username" placeholder="What's your name?" onChange={this.handleChange} value={this.state.username} />
-          <input type="text" name="currentItem" placeholder="What are you bringing ?" onChange={this.handleChange} value={this.state.currentItem} />
-          <button>Add Item</button>
-        </form>
-          <table className="table">
+          <div className="form-group  margin-top-50">
+
+            <input type="text" className="form-control" name="username" placeholder="What's your name?" onChange={this.handleChange} value={this.state.username} />
+            <button className="btn btn-primary btn-lg margin-top-50" >Submit name to the wine lottery</button>
+            </div>
+          </form>
+          <table className="table  margin-top-50">
             <thead>
               <tr>
                 <th scope="col">Participant Name</th>
@@ -86,15 +95,24 @@ class App extends Component {
               </tr>
             </thead>
             <tbody>
+                {this.state.items.map((item) => {
+                  return (
+                    <tr>
+                      <th key={item.id}>
+                        {item.user}
+                      </th>
+                      <td key={item.id}>
+                        <button className="btn btn-sm btn-primary"onClick={() => this.removeItem(item.id)}>Remove name from the list</button>
+                      </td>
+                    </tr>
+                  )
+                })}
 
-              <tr>
-                <th scope="row">Matti Meikäläinen</th>
-                <td><button className="btn btn-warning btn-sm">Delete name</button></td>
-
-              </tr>
             </tbody>
           </table>
-        </div>
+
+          <button className="btn btn-sm btn-primary">Lotter Name</button>
+          </div>
       </div>
     );
   }
