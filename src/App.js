@@ -12,7 +12,8 @@ class App extends Component {
     super();
     this.state = {
       currentItem: '',
-      username: ''
+      username: '',
+      items: [],
     }
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this); // <-- add this line
@@ -36,18 +37,46 @@ class App extends Component {
       [e.target.name]: e.target.value
     });
   }
+  componentDidMount() {
+    const itemsRef = firebase.database().ref('items');
+    itemsRef.on('value', (snapshot) => {
+      let items = snapshot.val();
+      let newState = [];
+      for (let item in items) {
+        newState.push({
+          id: item,
+          title: items[item].title,
+          user: items[item].user
+        });
+      }
+      this.setState({
+        items: newState
+      });
+    });
+  }
+  
   render() {
 
     return (
       <div>
         <Navigation />
-        <form onSubmit={this.handleSubmit}>
+       
+        <div className="container">
+        <ul>
+        {this.state.items.map((item) => {
+          return (
+            <li key={item.id}>
+              <h3>{item.title}</h3>
+              <p>brought by: {item.user}</p>
+            </li>
+          )
+        })}
+      </ul>          <h1>Wine Lottery App</h1>
+          <form onSubmit={this.handleSubmit}>
           <input type="text" name="username" placeholder="What's your name?" onChange={this.handleChange} value={this.state.username} />
           <input type="text" name="currentItem" placeholder="What are you bringing ?" onChange={this.handleChange} value={this.state.currentItem} />
           <button>Add Item</button>
         </form>
-        <div className="container">
-          <h1>Wine Lottery App</h1>
           <table className="table">
             <thead>
               <tr>
